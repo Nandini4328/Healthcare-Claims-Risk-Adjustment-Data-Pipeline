@@ -1,97 +1,138 @@
 # 🏥 Healthcare Claims & Risk Adjustment Data Pipeline
 
-This project demonstrates a **production-style healthcare data pipeline** designed to ingest, process, and analyze Medicare claims data for **risk adjustment (RAF scoring)** and analytics.
+A **production-style healthcare data pipeline (simulated locally)** designed to ingest, process, and transform Medicare claims data for **risk adjustment (RAF scoring)** and analytics.
 
-It simulates real-world data engineering practices using modular components such as ingestion, transformation, orchestration, and data quality validation.
+This project demonstrates real-world data engineering practices including ingestion, transformation, data quality validation, and analytical modeling.
 
 ---
 
 ## 🚀 Overview
 
-* Ingests healthcare claims data (simulated streaming)
-* Processes and transforms data for analytics
+* Processes healthcare claims data (simulated streaming + batch)
 * Applies risk adjustment logic (HCC-style flagging)
-* Ensures data quality through validation checks
-* Demonstrates scalable pipeline architecture
+* Implements data quality checks and deduplication
+* Produces analytics-ready datasets for reporting
+* Follows scalable, cloud-native architecture principles
 
 ---
 
-## 🧱 Architecture Diagram
+## 🚨 Problem Statement
 
+Healthcare organizations process large volumes of claims data daily, which must be transformed into accurate datasets for **risk adjustment and regulatory reporting**.
+
+Raw data challenges include:
+
+* Duplicate records across ingestion sources
+* Inconsistent schemas and formats
+* Missing validation and data quality checks
+* Poor query performance for analytics
+
+---
+
+## 💡 Solution Approach
+
+This project implements a **layered data pipeline architecture**:
+
+* **Ingestion Layer** → Simulates streaming ingestion (Pub/Sub style)
+* **Processing Layer** → Deduplication, transformation, enrichment
+* **Data Quality Layer** → Validation and schema checks
+* **Modeling Layer** → DBT-style transformations
+* **Serving Layer** → Analytics-ready datasets
+
+The design emphasizes modularity, scalability, and maintainability.
+
+---
+
+## 🧱 System Architecture
+
+### 🔹 End-to-End Pipeline
+
+```id="arch_full"
+                    ┌──────────────────────────────┐
+                    │   Healthcare Data Source     │
+                    │  (Claims / Encounter Data)   │
+                    └─────────────┬────────────────┘
+                                  │
+                                  ▼
+                    ┌──────────────────────────────┐
+                    │     Ingestion Layer          │
+                    │  Python Producer (Simulated) │
+                    │  → Mimics Pub/Sub Streaming  │
+                    └─────────────┬────────────────┘
+                                  │
+                                  ▼
+                    ┌──────────────────────────────┐
+                    │    Processing Layer          │
+                    │  (Pandas / PySpark Logic)    │
+                    │  - Deduplication             │
+                    │  - HCC Risk Flagging         │
+                    │  - Data Transformation       │
+                    └─────────────┬────────────────┘
+                                  │
+                                  ▼
+                    ┌──────────────────────────────┐
+                    │    Data Quality Layer        │
+                    │  - Null Checks               │
+                    │  - Schema Validation         │
+                    │  - Business Rules            │
+                    └─────────────┬────────────────┘
+                                  │
+                                  ▼
+                    ┌──────────────────────────────┐
+                    │   Data Modeling Layer        │
+                    │     (DBT-style SQL)         │
+                    │  - Staging Models           │
+                    │  - Mart / Aggregations      │
+                    └─────────────┬────────────────┘
+                                  │
+                                  ▼
+                    ┌──────────────────────────────┐
+                    │     Data Warehouse           │
+                    │   (Simulated BigQuery)       │
+                    │  Partitioned / Analytical    │
+                    └─────────────┬────────────────┘
+                                  │
+                                  ▼
+                    ┌──────────────────────────────┐
+                    │   Analytics & Reporting      │
+                    │  RAF Scoring / Insights      │
+                    └──────────────────────────────┘
 ```
-                ┌──────────────────────┐
-                │   Data Source        │
-                │ (Claims JSON Data)  │
-                └─────────┬────────────┘
-                          │
-                          ▼
-                ┌──────────────────────┐
-                │   Ingestion Layer    │
-                │ (Python Producer)    │
-                │ Simulates Pub/Sub    │
-                └─────────┬────────────┘
-                          │
-                          ▼
-                ┌──────────────────────┐
-                │ Processing Layer     │
-                │ (Pandas / PySpark)   │
-                │ - Deduplication      │
-                │ - Risk Flagging      │
-                └─────────┬────────────┘
-                          │
-                          ▼
-                ┌──────────────────────┐
-                │ Data Quality Layer   │
-                │ - Null Checks        │
-                │ - Value Validation   │
-                └─────────┬────────────┘
-                          │
-                          ▼
-                ┌──────────────────────┐
-                │ Data Modeling Layer  │
-                │ (DBT-style SQL)      │
-                │ - Aggregations       │
-                │ - Analytics Tables   │
-                └─────────┬────────────┘
-                          │
-                          ▼
-                ┌──────────────────────┐
-                │ Data Warehouse       │
-                │ (Simulated BigQuery) │
-                └─────────┬────────────┘
-                          │
-                          ▼
-                ┌──────────────────────┐
-                │ Analytics / Output   │
-                │ Reporting & Insights │
-                └──────────────────────┘
+
+---
+
+### ☁️ Production Architecture (GCP Mapping)
+
+```id="arch_gcp"
+Pub/Sub → Cloud Composer (Airflow) → Dataflow / Spark
+      → DBT → BigQuery → BI / Reporting
 ```
 
 ---
 
 ## 📁 Project Structure
 
-```
+```id="proj_struct"
 healthcare-claims-pipeline/
 │
 ├── data/
-│   └── sample_claims.json        # Input dataset
+│   └── sample_claims.json
 │
 ├── ingestion/
-│   └── producer.py              # Simulated streaming ingestion
+│   └── producer.py
 │
 ├── processing/
-│   └── transform.py             # Data transformation logic
+│   └── transform.py
 │
 ├── utils/
-│   └── data_quality.py          # Data validation checks
+│   └── data_quality.py
 │
 ├── dbt_models/
-│   ├── staging.sql              # Staging layer
-│   └── marts.sql                # Aggregated analytics layer
+│   ├── staging.sql
+│   └── marts.sql
 │
 ├── airflow/
-│   └── dag.py                   # Pipeline orchestration (Airflow)
+│   └── dag.py
 │
 └── README.md
 ```
@@ -101,21 +142,41 @@ healthcare-claims-pipeline/
 ## ⚙️ Key Features
 
 * ✅ Simulated real-time ingestion pipeline
-* ✅ Deduplication of claims data
-* ✅ HCC-style high-risk flagging
+* ✅ Deduplication using unique claim identifiers
+* ✅ HCC-style high-risk patient flagging
 * ✅ Data quality validation (null checks, constraints)
-* ✅ Modular and scalable pipeline design
+* ✅ Modular and scalable architecture
 * ✅ DBT-style transformation layers
-* ✅ Airflow orchestration
+* ✅ Airflow-based orchestration
 
 ---
 
-## 📊 Sample Processing Logic
+## ⚙️ Engineering Decisions
 
-* Identifies high-risk patients using diagnosis codes
-* Removes duplicate claim records
-* Aggregates claims data at member level
-* Produces analytics-ready datasets
+### 🔹 Modular Design
+
+Each layer (ingestion → processing → modeling) is decoupled for scalability and maintainability.
+
+### 🔹 Idempotent Processing
+
+Deduplication ensures safe reprocessing without duplicate records.
+
+### 🔹 Data Quality First
+
+Validation is applied before downstream transformations to prevent bad data propagation.
+
+### 🔹 Domain-Specific Logic
+
+Implements healthcare-specific risk logic (HCC-style flags).
+
+---
+
+## 📊 Sample Data Processing
+
+* Removes duplicate claims
+* Flags high-risk diagnosis codes
+* Aggregates claims at member level
+* Prepares analytics-ready datasets
 
 ---
 
@@ -123,39 +184,43 @@ healthcare-claims-pipeline/
 
 ### 1. Install dependencies
 
-```
+```id="run1"
 pip install pandas
 ```
 
 ### 2. Run ingestion (simulated streaming)
 
-```
+```id="run2"
 python ingestion/producer.py
 ```
 
 ### 3. Run transformation
 
-```
+```id="run3"
 python processing/transform.py
 ```
 
 ---
 
-## 📈 Performance (Simulated)
+## 📈 Performance (Simulated Scenario)
 
-* Designed for ~150K records/day ingestion
-* Optimized for scalable batch processing
+* Designed for **~150K records/day ingestion**
+* Optimized for scalable processing patterns
 * Supports partitioned and incremental modeling concepts
+* Reduces downstream query latency through structured transformations
 
 ---
 
-## 🛠️ Tech Stack
+## 🔧 Technology Stack
 
-* Python (Pandas)
-* SQL
-* Apache Airflow (conceptual)
-* DBT (conceptual)
-* GCP (BigQuery, Pub/Sub – simulated)
+| Layer         | Technology                  |
+| ------------- | --------------------------- |
+| Ingestion     | Python (Pub/Sub simulation) |
+| Processing    | Pandas / PySpark            |
+| Orchestration | Apache Airflow              |
+| Data Modeling | DBT-style SQL               |
+| Storage       | Simulated BigQuery          |
+| Data Quality  | Custom validation           |
 
 ---
 
@@ -163,14 +228,15 @@ python processing/transform.py
 
 * Designed end-to-end data pipeline architecture
 * Implemented ingestion, transformation, and validation layers
-* Modeled data using warehouse-style transformations
+* Built modular pipeline components
 * Applied healthcare domain logic for risk adjustment
+* Optimized structure for scalability and maintainability
 
 ---
 
 ## ⚠️ Disclaimer
 
-This project is a **lightweight simulation of a production-grade data pipeline**, focusing on architecture, design patterns, and core data engineering concepts rather than full cloud deployment.
+This project is a **lightweight simulation of a production-grade pipeline**, focusing on architecture, design patterns, and core data engineering concepts rather than full cloud deployment.
 
 ---
 
@@ -178,12 +244,12 @@ This project is a **lightweight simulation of a production-grade data pipeline**
 
 * Integrate real GCP services (Pub/Sub, BigQuery)
 * Add DBT tests and documentation
-* Implement streaming using Kafka
-* Introduce data observability tools (e.g., Great Expectations)
-* Deploy pipeline using Docker and CI/CD
+* Implement streaming with Kafka
+* Add data observability (Great Expectations)
+* Containerize with Docker and CI/CD pipelines
 
 ---
 
 ## ⭐ If you found this useful
 
-Feel free to star the repo or connect with me!
+Feel free to ⭐ the repo or connect with me!
